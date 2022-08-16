@@ -10,12 +10,12 @@ from mutagen.mp4 import MP4, MP4StreamInfoError
 class Sector(models.Model):
     name = models.CharField(max_length=255)
     sector_uuid = models.UUIDField(default=uuid.uuid4, unique=True)
-    releted_course = models.ManyToManyField('Course')
+    releted_course = models.ManyToManyField('Course', blank=True)
     sector_image = models.ImageField(upload_to='sector_image')
 
     # /media/sector_image/rasm.png
     def get_image_absolute_url(self):
-        return 'http://localhost:8000'+self.sector_image
+        return 'http://localhost:8000'+self.sector_image.url
 
 class Course(models.Model):
     title = models.CharField(max_length=255)
@@ -24,8 +24,8 @@ class Course(models.Model):
     updated = models.DateTimeField(auto_now=True)
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     language = models.CharField(max_length=50)
-    course_section = models.ManyToManyField('CourseSection')
-    comments = models.ManyToManyField('Comment')
+    course_section = models.ManyToManyField('CourseSection', blank=True)
+    comments = models.ManyToManyField('Comment', blank=True)
     image_url = models.ImageField(upload_to='course_images')
     course_uuid = models.UUIDField(default=uuid.uuid4, unique=True)
     price = models.DecimalField(max_digits=5, decimal_places=2)
@@ -50,9 +50,11 @@ class Course(models.Model):
                 length += episode.length
         return get_timer(length, type='short')
 
+    def get_absolute_image_url(self):
+        return 'http://localhost:8000'+self.image_url.url
 class CourseSection(models.Model):
     section_title = models.CharField(max_length=255)
-    episodes = models.ManyToManyField('Episode')
+    episodes = models.ManyToManyField('Episode', blank=True)
 
     def total_length(self):
         total = Decimal(0.0)
@@ -77,7 +79,7 @@ class Episode(models.Model):
         return get_timer(self.length)
 
     def get_absolute_url(self):
-        return 'http://localhost:8000'+self.file
+        return 'http://localhost:8000'+self.file.url
 
     def save(self, *args, **kwargs):
         self.length=self.get_video_length()

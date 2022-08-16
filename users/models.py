@@ -49,3 +49,9 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.name+" "+self.email
+
+    def get_all_courses(self):
+        courses=[]
+        for course in self.paid_courses.all():
+            courses.append(course.course_uuid)
+        return courses

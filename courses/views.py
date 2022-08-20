@@ -2,10 +2,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 
-from courses.models import Sector
-from .serializers import CourseDisplaySerializer
+from courses.models import Sector, Course
+from .serializers import CourseDisplaySerializer, CourseUnpaidSerializer
+from django.http import HttpResponseBadRequest
 
-class CoursesHomeView(APIView):
+class CoursesHomeView(APIView): 
 
     def get(self, request, *args, **kwargs):
         sectors = Sector.objects.order_by("?")[:6]
@@ -26,3 +27,17 @@ class CoursesHomeView(APIView):
             sector_response.append(sector_obj)
 
         return Response(data=sector_response, status=status.HTTP_200_OK)
+
+class CourseDetail(APIView):
+    def get(self, request, course_uuid, *args, **kwargs):
+        course = Course.objects.filter(course_uuid=course_uuid)
+
+        if not course:
+            return HttpResponseBadRequest("Kurs topilmadi!")
+
+        serializer = CourseUnpaidSerializer(course[0])
+
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+
+

@@ -39,13 +39,13 @@ class Course(models.Model):
 
     def get_total_lectures(self):
         lectures = 0
-        for section in self.course_section:
+        for section in self.course_section.all():
             lectures += len(section.episode.all())
         return lectures
 
     def total_course_length(self):
         length = Decimal(0.0)
-        for section in self.course_section:
+        for section in self.course_section.all():
             for episode in section.episode.all():
                 length += episode.length
         return get_timer(length, type='short')

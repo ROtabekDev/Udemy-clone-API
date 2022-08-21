@@ -3,7 +3,11 @@ from rest_framework.views import APIView
 from rest_framework import status
 
 from courses.models import Sector, Course
-from .serializers import CourseDisplaySerializer, CourseUnpaidSerializer
+from .serializers import (
+        CourseDisplaySerializer, 
+        CourseUnpaidSerializer,
+        CourseListSerializer,
+    )
 from django.http import HttpResponseBadRequest
 
 class CoursesHomeView(APIView): 
@@ -39,5 +43,24 @@ class CourseDetail(APIView):
 
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
+class SectorCourse(APIView):
+    def get(self, request, sector_uuid, *args, **kwargs):
+        sector = Sector.objects.filter(sector_uuid=sector_uuid)
 
+        if not sector:
+            return HttpResponseBadRequest('Sector does not exist')
+
+        sector_courses = sector[0].releted_course.all()
+        serializer = CourseListSerializer(sector_courses, many=True)
+
+        total_students = 0
+
+        for course in sector_courses:
+            total_students+=course.get_enrolled_student()
+
+        return Response({
+            'data': serializer.data,
+            'sector_name': sector[0].name,
+            'total_students': total_students,
+        }, status=status.HTTP_200_OK)
 

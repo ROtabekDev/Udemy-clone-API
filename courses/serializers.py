@@ -80,3 +80,16 @@ class CourseListSerializer(serializers.ModelSerializer):
             'description',
             'total_lectures'
         ]
+
+class CartItemSerializer(serializers.ModelSerializer):
+    author = UserSerializer()
+    image_url = serializers.CharField(source='get_absolute_image_url')
+
+    class Meta:
+        model = Course
+        fields=[
+            'author',
+            'title',
+            'price',
+            'image_url'
+        ]

@@ -9,6 +9,7 @@ from .serializers import (
         CourseListSerializer,
     )
 from django.http import HttpResponseBadRequest
+from django.db.models import Q
 
 class CoursesHomeView(APIView): 
 
@@ -64,3 +65,10 @@ class SectorCourse(APIView):
             'total_students': total_students,
         }, status=status.HTTP_200_OK)
 
+class SearchCourse(APIView):
+    def get(self, request, search_term):
+        matches = Course.objects.filter(Q(title__icontains=search_term) | Q
+        (description__icontains=search_term))
+        
+        serializer=CourseListSerializer(matches, many=True)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)

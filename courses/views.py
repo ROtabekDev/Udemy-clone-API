@@ -3,13 +3,18 @@ from rest_framework.views import APIView
 from rest_framework import status
 
 from courses.models import Sector, Course
+from users.models import User
+
 from .serializers import (
+        CommentSerializer,
         CourseDisplaySerializer, 
         CourseUnpaidSerializer,
         CourseListSerializer,
     )
 from django.http import HttpResponseBadRequest
 from django.db.models import Q
+
+import json
 
 class CoursesHomeView(APIView): 
 
@@ -69,6 +74,37 @@ class SearchCourse(APIView):
     def get(self, request, search_term):
         matches = Course.objects.filter(Q(title__icontains=search_term) | Q
         (description__icontains=search_term))
-        
+
         serializer=CourseListSerializer(matches, many=True)
         return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+class AddComent(APIView):
+    def post(self, request, course_uuid):
+        try:
+            course=Course.objects.get(course_uuid=course_uuid)
+        except Course.DoesNotExist:
+            return HttpResponseBadRequest('Course does not exsit')
+
+        try:
+            content = json.loads(request.body)
+        except json.decoder.JSONDecodeError:
+            return Response("Please a json body", status=status.HTTP_400_BAD_REQUEST)
+
+        if not content.get('message'):
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = CommentSerializer(data=content)
+
+        if serializer.is_valid():
+            author = User.objects.get(id=1)
+            comment = serializer.save(user=author)
+            # comment = serializer.save(user=request.user)
+            course.comments.add(comment)
+            return Response(status=status.HTTP_201_CREATED)
+        else:
+            return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+        

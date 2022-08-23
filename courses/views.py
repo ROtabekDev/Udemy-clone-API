@@ -11,6 +11,7 @@ from .serializers import (
         CourseUnpaidSerializer,
         CourseListSerializer,
         CartItemSerializer,
+        CoursePaidSerializer,
     )
 from django.http import HttpResponseBadRequest
 from django.db.models import Q
@@ -141,7 +142,20 @@ class GetCartDetail(APIView):
             'cart_total': cart_total
         }, status=status.HTTP_200_OK)
 
+class CourseStudy(APIView):
+    def get(self, request, course_uuid):
+        try:
+            course = Course.objects.get(course_uuid=course_uuid)
+        except Course.DoesNotExist:
+            return HttpResponseBadRequest("course does not exist")
+        
+        request.user=User.objects.get(id=1)
+        user_course = request.user.paid_courses.filter(course_uuid=course_uuid)
 
+        if not user_course:
+            return HttpResponseBadRequest("user does not own this course")
 
+        serializer = CoursePaidSerializer(course)
 
+        return Response(serializer.data, status=status.HTTP_200_OK)
         

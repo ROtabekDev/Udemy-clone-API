@@ -37,8 +37,30 @@ class EpisodeUnPaidSerializer(serializers.ModelSerializer):
             'file'
         ]
 
+class EpisodePaidSerializer(serializers.ModelSerializer):
+    length = serializers.CharField(source="get_video_length_time")
+
+    class Meta:
+        model = Episode
+        exclude = [
+            'file',
+            'length',
+            'title'
+        ]
+
 class CourseSectionUnPaidSerializer(serializers.ModelSerializer):
     episodes = EpisodeUnPaidSerializer(many=True)
+    total_duration = serializers.CharField(source = 'total_length')
+    class Meta:
+        model = CourseSection
+        fields=[
+            'section_title',
+            'episodes',
+            'total_duration',
+        ]
+
+class CourseSectionPaidSerializer(serializers.ModelSerializer):
+    episodes = EpisodePaidSerializer(many=True)
     total_duration = serializers.CharField(source = 'total_length')
     class Meta:
         model = CourseSection
@@ -51,6 +73,21 @@ class CourseUnpaidSerializer(serializers.ModelSerializer):
     author = UserSerializer()
     comments = CommentSerializer(many=True)
     course_section = CourseSectionUnPaidSerializer(many=True)
+    student_no = serializers.IntegerField(source="get_enrolled_student")
+    total_lectures = serializers.IntegerField(source="get_total_lectures")
+    total_duration = serializers.CharField(source="total_course_length")
+    image_url = serializers.CharField(source="get_absolute_image_url")
+    
+    class Meta:
+        model = Course
+        exclude = (
+            "id",
+        )
+
+class CoursePaidSerializer(serializers.ModelSerializer):
+    author = UserSerializer()
+    comments = CommentSerializer(many=True)
+    course_section = CourseSectionPaidSerializer(many=True)
     student_no = serializers.IntegerField(source="get_enrolled_student")
     total_lectures = serializers.IntegerField(source="get_total_lectures")
     total_duration = serializers.CharField(source="total_course_length")

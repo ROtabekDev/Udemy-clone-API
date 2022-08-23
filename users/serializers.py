@@ -7,3 +7,9 @@ class UserSerializer(serializers.ModelSerializer):
         fields = [
             'name'
         ]
+
+class UserAuthSerializer(serializers.ModelSerializer):
+    courses = serializers.ListField(source='get_all_courses')
+    class Meta:
+        model = User
+        fields = ['name', 'id', 'courses', 'email']
